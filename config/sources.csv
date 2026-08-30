@@ -1,0 +1,4 @@
+name,url,enabled,notes
+Techmeme,https://www.techmeme.com/feed.xml,true,科技新闻人工聚合器，更新密集
+Hacker News Front Page,https://hnrss.org/frontpage,false,示例：想加源就在这里加一行
+SEC 8-K (示例),https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=8-K&output=atom,false,示例：公司公告流

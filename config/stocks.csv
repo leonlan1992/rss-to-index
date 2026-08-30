@@ -1,0 +1,16 @@
+ticker,name,keywords
+NVDA,NVIDIA,nvidia;英伟达;jensen huang;blackwell;cuda;h100;gb200
+AAPL,Apple,apple;苹果;iphone;ipad;macbook;tim cook;vision pro
+MSFT,Microsoft,microsoft;微软;azure;copilot;satya nadella
+GOOGL,Alphabet,google;alphabet;谷歌;gemini;deepmind;waymo;sundar pichai
+AMZN,Amazon,amazon;亚马逊;aws;andy jassy
+META,Meta Platforms,meta platforms;facebook;instagram;whatsapp;zuckerberg;llama
+TSLA,Tesla,tesla;特斯拉;elon musk;cybertruck;optimus
+AMD,AMD,amd;advanced micro devices;lisa su;instinct mi300
+AVGO,Broadcom,broadcom;博通;hock tan;vmware
+TSM,TSMC,tsmc;台积电;taiwan semiconductor
+PLTR,Palantir,palantir;alex karp;foundry
+CRM,Salesforce,salesforce;marc benioff;agentforce
+ORCL,Oracle,oracle;甲骨文;larry ellison
+NOW,ServiceNow,servicenow;bill mcdermott
+SNOW,Snowflake,snowflake;sridhar ramaswamy
