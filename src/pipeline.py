@@ -63,16 +63,21 @@ def run(limit: int | None = None, dry_run: bool = False, verbose: bool = True) -
                 title_cn = translator.translate(item["title_en"])
                 translated += 1
             except Exception as exc:                  # noqa: BLE001
+                # 翻译失败的条目**不写进索引**，留到下次跑重试。
+                # 写进去的话 URL 就算见过了，这条会永远停在没翻译的状态。
+                log.error("翻译失败，本条跳过 %s: %s", item["link"], exc)
                 failures.append({"source": item["link"], "error": f"翻译失败: {exc}"})
-        tickers, tags = tagger.tag(item["title_en"], title_cn)
+                continue
+        tickers = tagger.tag(item["title_en"], title_cn)
         if tickers:
             with_ticker += 1
-        rows.append(index_store.build_row(item, title_cn, tickers, tags))
+        rows.append(index_store.build_row(item, title_cn, tickers))
 
     if dry_run:
         log.info("翻译：dry-run 跳过")
     else:
-        log.info("翻译：%d 条", translated)
+        skipped = len(fresh) - len(rows)
+        log.info("翻译：成功 %d 条，失败跳过 %d 条", translated, skipped)
     log.info("打标：%d 条挂上了股票", with_ticker)
 
     # 4. 追加进索引

@@ -21,7 +21,7 @@ PROMPT = """把下面这条科技新闻标题翻成中文。
 class Translator:
     def __init__(self, api_key: str | None = None, model: str | None = None):
         self.client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"])
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self.model = model or os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
 
     def translate(self, title: str) -> str:
         resp = self.client.models.generate_content(

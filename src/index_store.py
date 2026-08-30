@@ -1,7 +1,7 @@
-"""索引层：一张 CSV，一条材料一行。
+"""索引层：一张 CSV，一条新闻一行，六列。
 
-列名和第 3 期那张索引表完全一致，另外多一列「原标题」存英文原文，方便你核对翻译。
-去重靠 URL —— 已经在 index.csv 里的链接直接跳过，所以这个脚本跑十遍也只有一行。
+去重靠 URL —— 已经在 index.csv 里的链接直接跳过，所以这个脚本跑十遍也只有那些行。
+想换载体（Notion / 数据库），重写这一个文件就行。
 """
 
 import csv
@@ -11,10 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 INDEX_PATH = ROOT / "library" / "index.csv"
 
-COLUMNS = [
-    "标题", "信息类型", "信息时间", "入库时间", "Source", "URL",
-    "原文存档", "股票池关联", "标签", "内容概要", "精读Takeaway", "审阅", "原标题",
-]
+COLUMNS = ["信息时间", "新闻内容", "中文翻译", "URL", "股票池关联", "入库时间"]
 
 
 def now_iso() -> str:
@@ -45,22 +42,14 @@ def append(rows: list[dict], path: Path = INDEX_PATH) -> int:
     return len(rows)
 
 
-def build_row(item: dict, title_cn: str, tickers: list[str], tags: list[str]) -> dict:
-    """把一条新闻拼成索引里的一行。空着的列是留给你自己往下做的。"""
+def build_row(item: dict, title_cn: str, tickers: list[str]) -> dict:
     return {
-        "标题": title_cn or item["title_en"],
-        "信息类型": "新闻",
         "信息时间": item.get("published_at") or "",
-        "入库时间": now_iso(),
-        "Source": item.get("source") or "",
+        "新闻内容": item["title_en"],
+        "中文翻译": title_cn,
         "URL": item["link"],
-        "原文存档": "",            # 抓正文入「湖」是下一步，见 README
         "股票池关联": ";".join(tickers),
-        "标签": ";".join(tags),
-        "内容概要": "",            # 要读正文才写得出来
-        "精读Takeaway": "",        # 人读完自己填
-        "审阅": "FALSE",           # 自动入库的东西默认没人看过
-        "原标题": item["title_en"],
+        "入库时间": now_iso(),
     }
 
 
