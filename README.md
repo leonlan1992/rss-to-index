@@ -1,6 +1,6 @@
 # rss-to-index
 
-一条能跑的信息流水线：**Techmeme RSS → Gemini 翻译 → 关键词挂股票标签 → 追加进一张 CSV 索引**，交给 cron 每天自动跑。
+一条能跑的信息流水线：**Techmeme RSS → Gemini 翻译 → 关键词挂股票标签 → 追加进一张 CSV 索引**，交给 cron 定时自动跑。
 
 这是「AI 助力投研」系列第 4 期的配套代码。刻意做成最小可用的样子：一个 API key、两个配置 CSV、不到 300 行 Python，没有数据库、没有服务。跑通之后往哪走，最后一节有几条路。
 
@@ -66,8 +66,10 @@ python run.py               # 没问题了就全跑
 **交给 cron：**
 
 ```
-0 8,20 * * * cd /绝对路径/rss-to-index && /绝对路径/python3 run.py --quiet
+*/15 * * * * cd /绝对路径/rss-to-index && /绝对路径/python3 run.py --quiet
 ```
+
+我们自己就是每 15 分钟扫一次。Techmeme 更新密集，扫得勤时效才有意义；去重挡在翻译前面，空转一次的成本只是一个 HTTP 请求。频率照你的源来调——newsletter 类每天一次就够。
 
 macOS 上有三个坑，都源于 **cron 的世界不是你终端的世界**：
 
