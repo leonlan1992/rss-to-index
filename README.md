@@ -1,4 +1,4 @@
-# rss-to-notion
+# rss-to-index
 
 一条能跑的信息流水线：**RSS → Gemini 翻译 → 关键词打股票标签 → 写进一张 CSV 索引**，交给 cron 每天自动跑。
 
@@ -38,7 +38,7 @@ library/index.csv           索引：一条材料一行
 需要 Python 3.10+。
 
 ```bash
-git clone https://github.com/<your-name>/rss-to-notion.git
+git clone https://github.com/leonlan1992/rss-to-index.git
 cd rss-to-notion
 pip install -r requirements.txt
 cp .env.example .env
