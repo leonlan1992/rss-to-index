@@ -5,12 +5,11 @@
 """
 
 import csv
+import time
 from pathlib import Path
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
 import feedparser
-
-from . import db
 
 SOURCES_PATH = Path(__file__).resolve().parent.parent / "config" / "sources.csv"
 
@@ -20,7 +19,7 @@ TRACKING_KEYS = {"fbclid", "gclid", "mc_cid", "mc_eid", "ref", "source"}
 
 
 def normalize_link(url: str) -> str:
-    """URL 归一化：去掉追踪参数、去掉末尾斜杠。去重的第一道关口。"""
+    """URL 归一化：去掉追踪参数和末尾斜杠。去重的第一道关口。"""
     parts = urlparse(url.strip())
     kept = [(k, v) for k, v in parse_qsl(parts.query)
             if not k.lower().startswith(TRACKING_PREFIXES) and k.lower() not in TRACKING_KEYS]
@@ -34,48 +33,40 @@ def read_sources(path: Path = SOURCES_PATH) -> list[dict]:
                 if (r.get("enabled") or "").strip().lower() == "true"]
 
 
-def _published(entry) -> str | None:
-    import time
+def _published(entry) -> str:
     struct = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
-    if not struct:
-        return None
-    return time.strftime("%Y-%m-%dT%H:%M:%S+00:00", struct)
+    return time.strftime("%Y-%m-%dT%H:%M:%S+00:00", struct) if struct else ""
 
 
-def fetch_source(conn, source: dict) -> dict:
+def fetch_source(source: dict) -> list[dict]:
     feed = feedparser.parse(source["url"])
     if getattr(feed, "bozo", 0) and not feed.entries:
         raise RuntimeError(f"解析失败: {getattr(feed, 'bozo_exception', 'unknown')}")
 
-    seen, added = 0, 0
+    items = []
     for entry in feed.entries:
         link = getattr(entry, "link", None)
         title = (getattr(entry, "title", "") or "").strip()
-        if not link or not title:
-            continue
-        seen += 1
-        if db.insert_item(conn, {
-            "link": normalize_link(link),
-            "title_en": title,
-            "source": source["name"],
-            "published_at": _published(entry),
-        }):
-            added += 1
-    return {"source": source["name"], "seen": seen, "added": added}
+        if link and title:
+            items.append({
+                "link": normalize_link(link),
+                "title_en": title,
+                "source": source["name"],
+                "published_at": _published(entry),
+            })
+    return items
 
 
-def fetch_all(conn, sources: list[dict] | None = None) -> dict:
-    """逐个源抓取。**单个源失败不影响其他源**——这是能安心让 cron 跑的前提。"""
+def fetch_all(sources: list[dict] | None = None) -> tuple[list[dict], list[dict]]:
+    """逐个源抓取，返回 (条目, 失败列表)。
+
+    **单个源失败不影响其他源**——这是能安心让 cron 跑的前提。
+    """
     sources = sources if sources is not None else read_sources()
-    results, failures = [], []
+    items, failures = [], []
     for source in sources:
         try:
-            results.append(fetch_source(conn, source))
+            items.extend(fetch_source(source))
         except Exception as exc:                      # noqa: BLE001
             failures.append({"source": source["name"], "error": str(exc)})
-    return {
-        "seen": sum(r["seen"] for r in results),
-        "added": sum(r["added"] for r in results),
-        "per_source": results,
-        "failures": failures,
-    }
+    return items, failures
